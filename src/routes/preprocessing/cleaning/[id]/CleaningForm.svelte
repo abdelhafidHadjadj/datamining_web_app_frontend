@@ -1,49 +1,65 @@
-<!-- src/routes/preprocessing/cleaning/[datasetId]/CleaningForm.svelte -->
 <script>
-    export let dataset;
-    export let methods = ['mean', 'median', 'mode', 'min', 'max'];
-    export let onClean;
-  
-    let dropColumns = [];
-    let fillMissing = {};
-    console.log(dataset);
-    
-    const handleSubmit = () => {
-      onClean(dropColumns, fillMissing);
-    };
-  </script>
-  
-  <!-- Drop Columns -->
-  <div class="mb-6">
-    <h2 class="text-lg font-semibold mb-2">🗑️ Columns to Drop</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-      {#each dataset.metadata.columns as column}
-        <label class="flex items-center gap-2">
-          <input type="checkbox"
-            on:change={(e) =>
-              e.target.checked
-                ? dropColumns.push(column.name)
-                : dropColumns = dropColumns.filter(c => c !== column.name)
-            }
+  import { createEventDispatcher } from 'svelte';
+
+  export let dataset;
+  const dispatch = createEventDispatcher();
+
+  let dropColumns = [];
+  let fillMissing = {};
+  const methods = ['mean', 'median', 'mode', 'min', 'max'];
+  let error = '';
+
+  // Extract columns with missing values from metadata
+  let missingValueColumns = Object.entries(dataset.metadata.missing_values || {}).map(
+    ([key, value]) => ({ name: key, ...value })
+  );
+
+  // Filter out dropped columns from missing columns
+  $: filteredMissingColumns = missingValueColumns.filter(
+    col => !dropColumns.includes(col.name)
+  );
+
+  function validateAndSubmit() {
+    const requiredFields = filteredMissingColumns.map(c => c.name);
+    const allFilled = requiredFields.every(name => fillMissing[name]);
+
+    if (!allFilled) {
+      error = 'Please select a method for all columns with missing values.';
+      return;
+    }
+
+    error = '';
+    dispatch('clean', { dropColumns, fillMissing });
+  }
+</script>
+
+<div class="space-y-6">
+  <!-- Drop Columns Section -->
+  <div>
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">🗃 Columns to Drop</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {#each dataset.metadata.columns as col}
+        <label class="flex items-center space-x-2 bg-gray-100 px-3 py-2 rounded-lg shadow-sm border hover:bg-gray-200 transition">
+          <input
+            type="checkbox"
+            bind:group={dropColumns}
+            value={col}
           />
-          <span>{column}</span>
+          <span class="text-sm">{col}</span>
         </label>
       {/each}
     </div>
   </div>
-  
-  <!-- Fill Missing -->
-  <div class="mb-6">
-    <h2 class="text-lg font-semibold mb-2">🧪 Fill Missing Values</h2>
-    <div class="flex flex-col gap-3">
-      {#each Object.entries(dataset.metadata.missing_values) as column}
-        <div class="flex items-center gap-4">
-          <label class="w-40">{column}</label>
-          <select
-            bind:value={fillMissing[column]}
-            class="border p-1 rounded w-40"
-          >
-            <option value="">Ignore</option>
+
+  <!-- Fill Missing Values Section -->
+  <div>
+    <h2 class="text-lg font-semibold text-gray-700 mb-2">🧪 Fill Missing Values (Required)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {#each filteredMissingColumns as col}
+        <div class="bg-white p-4 rounded-xl border shadow">
+          <label class="block font-medium text-gray-600 mb-1">{col.name}</label>
+          <select bind:value={fillMissing[col.name]} class="w-full p-2 border rounded-md focus:ring-pink-500 focus:outline-none" required>
+            <option value="" disabled selected>Select method</option>
             {#each methods as method}
               <option value={method}>{method}</option>
             {/each}
@@ -52,9 +68,14 @@
       {/each}
     </div>
   </div>
-  
-  <!-- Clean Button -->
-  <button on:click={handleSubmit} class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-    ✅ Clean Dataset
-  </button>
-  
+
+  {#if error}
+    <p class="text-red-600 font-semibold">{error}</p>
+  {/if}
+
+  <div class="flex justify-end mt-4">
+    <button on:click={validateAndSubmit} class="bg-pink-600 text-white px-6 py-3 rounded-xl hover:bg-pink-700 font-semibold shadow">
+      🚀 Clean Dataset
+    </button>
+  </div>
+</div>

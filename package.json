@@ -29,7 +29,9 @@
 		"vite": "^6.2.5"
 	},
 	"dependencies": {
+		"@zerodevx/svelte-toast": "^0.9.6",
 		"axios": "^1.8.4",
-		"lucide-svelte": "^0.492.0"
+		"lucide-svelte": "^0.492.0",
+		"plotly.js": "^3.0.1"
 	}
 }

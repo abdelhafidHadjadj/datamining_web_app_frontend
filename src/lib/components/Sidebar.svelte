@@ -51,7 +51,7 @@
           {#if $sidebarOpen && showPreprocessing}
             <div class="ml-8 space-y-1 text-sm">
               <a href="/preprocessing/cleaning" class="block p-1 hover:bg-gray-700 rounded">Cleaning</a>
-              <a href="/preprocessing/normalized" class="block p-1 hover:bg-gray-700 rounded">Normalized</a>
+              <a href="/preprocessing/normalize" class="block p-1 hover:bg-gray-700 rounded">Normalize</a>
             </div>
           {/if}
         </div>

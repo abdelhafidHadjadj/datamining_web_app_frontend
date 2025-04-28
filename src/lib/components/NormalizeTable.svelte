@@ -1,13 +1,24 @@
 <script>
+    import { goto } from '$app/navigation';
+  
     export let datasets = [];
     export let search = '';
   
+    function filtered() {
+      return datasets.filter(d =>
+        d.file_name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
     function statusColor(status) {
       return {
         original: 'bg-gray-200 text-gray-800',
         cleaned: 'bg-yellow-200 text-yellow-800',
         normalized: 'bg-green-200 text-green-800'
       }[status] ?? 'bg-gray-100 text-gray-600';
+    }
+  
+    function openNormalize(dataset) {
+      goto(`/preprocessing/normalize/${dataset._id}`);
     }
   </script>
   
@@ -18,7 +29,6 @@
           <th class="px-4 py-3">File name</th>
           <th class="px-4 py-3">Size</th>
           <th class="px-4 py-3">Columns</th>
-          <th class="px-4 py-3">Columns with missing values</th>
           <th class="px-4 py-3">Preprocessing</th>
           <th class="px-4 py-3">Upload at</th>
           <th class="px-4 py-3">Actions</th>
@@ -30,7 +40,6 @@
             <td class="px-4 py-2 font-medium">{dataset.file_name}</td>
             <td class="px-4 py-2">{(dataset.metadata?.file_size / 1024).toFixed(1)} KB</td>
             <td class="px-4 py-2">{dataset.metadata?.nbr_col}</td>
-            <td class="px-4 py-2">{Object.keys(dataset.metadata?.missing_values || {}).length}</td>
             <td class="px-4 py-2">
               <span class={`px-2 py-1 text-xs rounded-full font-semibold ${statusColor('original')}`}>
                 original
@@ -38,8 +47,8 @@
             </td>
             <td class="px-4 py-2">{new Date(dataset.upload_date).toLocaleString()}</td>
             <td class="px-4 py-2">
-              <a href={`/preprocessing/cleaning/${dataset._id}`} class="bg-green-500 text-white px-4 py-1 rounded-full hover:underline text-sm">
-                Nettoyer
+              <a href={`/preprocessing/normalize/${dataset._id}`} class=" bg-blue-500 px-4 py-1 rounded-full text-white hover:underline text-sm">
+                Normalize
               </a>
             </td>
           </tr>
