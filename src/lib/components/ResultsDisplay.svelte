@@ -1,98 +1,74 @@
 <script>
-    import { onMount } from 'svelte';
-    import { browser } from '$app/environment';
-  
-    let Plotly;
-    let plotDiv;
-  
-    export let clusteringResult = null;
-  
-    onMount(async () => {
-      if (browser) {
-        Plotly = await import('plotly.js');   // ✅ GOOD import
-        drawResults();
-      }
-    });
-  
-    function drawResults() {
-      if (!clusteringResult || !clusteringResult.labels) return;
-      if (!clusteringResult.results?.points) return;
-  
-      const labels = clusteringResult.labels;
-      const points = clusteringResult.results.points;
-      const centers = clusteringResult.results.centers || null;
-  
-      const uniqueLabels = [...new Set(labels)];
-      const colors = uniqueLabels.map(() => `hsl(${Math.random() * 360}, 70%, 60%)`);
-  
-      const traces = uniqueLabels.map((cluster, idx) => {
-        const clusterPoints = points.filter((_, i) => labels[i] === cluster);
-  
-        return {
-          x: clusterPoints.map(p => p[0]),
-          y: clusterPoints.map(p => p[1]),
-          mode: 'markers',
-          type: 'scatter',
-          name: `Cluster ${cluster}`,
-          marker: {
-            color: colors[idx],
-            size: 8,
-            line: { width: 1 }
-          }
-        };
-      });
-  
-      if (centers) {
-        traces.push({
-          x: centers.map(c => c[0]),
-          y: centers.map(c => c[1]),
-          mode: 'markers',
-          type: 'scatter',
-          name: 'Centers',
-          marker: {
-            color: 'black',
-            size: 12,
-            symbol: 'x'
-          }
-        });
-      }
-  
-      const layout = {
-        title: 'Clustered Data',
-        xaxis: { title: 'Feature 1' },
-        yaxis: { title: 'Feature 2' },
-        margin: { t: 40, l: 50, r: 30, b: 50 }
-      };
-  
-      Plotly.newPlot(plotDiv, traces, layout, { responsive: true });
-    }
+    import { TimerIcon } from 'lucide-svelte'; // ✅ Import the clock icon
+    export let clusteringResult;
   </script>
   
-  <div class="space-y-6">
-    {#if clusteringResult}
-      <div bind:this={plotDiv} class="w-full h-[500px]"></div>
+  <div class="space-y-8">
+    <h2 class="text-3xl font-bold text-gray-800">🧩 Clustering Results</h2>
   
-      <div class="bg-gray-50 p-6 rounded-lg shadow space-y-2">
-        <h2 class="text-2xl font-bold text-gray-800">Metrics</h2>
-  
-        <div class="grid grid-cols-2 gap-4 text-gray-700">
-          {#if clusteringResult.metrics?.sse !== undefined}
-            <div><strong>SSE:</strong> {clusteringResult.metrics.sse.toFixed(2)}</div>
-          {/if}
-          {#if clusteringResult.metrics?.silhouette_avg !== undefined}
-            <div><strong>Silhouette Score:</strong> {clusteringResult.metrics.silhouette_avg.toFixed(3)}</div>
-          {/if}
-          {#if clusteringResult.metrics?.ssc !== undefined}
-            <div><strong>SSC:</strong> {clusteringResult.metrics.ssc.toFixed(2)}</div>
-          {/if}
-          {#if clusteringResult.metrics?.calinski_harabaz !== undefined}
-            <div><strong>Calinski-Harabasz:</strong> {clusteringResult.metrics.calinski_harabaz.toFixed(2)}</div>
-          {/if}
-          {#if clusteringResult.metrics?.davies_bouldin !== undefined}
-            <div><strong>Davies-Bouldin:</strong> {clusteringResult.metrics.davies_bouldin.toFixed(2)}</div>
-          {/if}
+    <div class="bg-white p-6 rounded-lg shadow space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-gray-500 text-sm">Number of Clusters</div>
+          <div class="text-lg font-semibold mt-1">
+            {Object.keys(clusteringResult?.results?.cluster_sizes || {}).length}
+          </div>
         </div>
+  
+        <div>
+          <div class="text-gray-500 text-sm">SSE (Sum of Squared Errors)</div>
+          <div class="text-lg font-semibold mt-1">
+            {clusteringResult?.metrics?.sse?.toFixed(2)}
+          </div>
+        </div>
+  
+        <div>
+          <div class="text-gray-500 text-sm">Silhouette Score</div>
+          <div class="text-lg font-semibold mt-1">
+            {clusteringResult?.metrics?.silhouette_score?.toFixed(4) ?? 'N/A'}
+          </div>
+        </div>
+  
+        <div class="flex items-start gap-2">
+          <div>
+            <div class="text-gray-500 text-sm">Runtime</div>
+            <div class="text-lg font-semibold mt-1">
+              {clusteringResult?.runtime_sec ?? 'N/A'} seconds
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Cluster Sizes -->
+      <div>
+        <div class="text-gray-500 text-sm mb-2">Cluster Sizes</div>
+        <ul class="space-y-2">
+          {#each Object.entries(clusteringResult?.results?.cluster_sizes || {}) as [cluster, size]}
+            <li class="bg-gray-100 rounded px-3 py-2 flex justify-between items-center">
+              <span class="font-medium">Cluster {cluster}</span>
+              <span class="text-gray-700 font-semibold">{size} samples</span>
+            </li>
+          {/each}
+        </ul>
+      </div>
+    </div>
+  
+    <!-- Scatter Plot -->
+    {#if clusteringResult?.results?.scatter_path}
+      <div class="bg-white p-6 rounded-lg shadow space-y-4">
+        <h3 class="text-2xl font-bold text-gray-800">📈 Cluster Scatter Plot</h3>
+        <img
+          src={"http://127.0.0.1:5000" + clusteringResult.results.scatter_path}
+          alt="Cluster Scatter Plot"
+          class="w-full max-w-3xl mx-auto rounded shadow"
+        />
       </div>
     {/if}
   </div>
+  
+  <style>
+    :global(img) {
+      object-fit: contain;
+    }
+  </style>
   

@@ -16,9 +16,10 @@
   async function handleCleaning(dropColumns, fillMissing) {
     try {
       const result = await cleanDataset(dataset._id, dropColumns, fillMissing);
-      preview = result.preview;
+      preview = result.cleaned_data;
       error = null;
       activeTab = 'preview';
+      
       console.log(preview);
       
     } catch (err) {
@@ -54,6 +55,7 @@
       >
         📄 Original Data
       </button>
+    
       <button
         class="px-4 py-2 rounded-t-lg font-semibold transition-all duration-200"
         class:bg-white={activeTab === 'cleaning'}
@@ -65,7 +67,8 @@
       >
         🧹 Cleaning Form
       </button>
-      {#if preview.length > 0}
+    
+      {#if preview && preview.length > 0}
         <button
           class="px-4 py-2 rounded-t-lg font-semibold transition-all duration-200"
           class:bg-white={activeTab === 'preview'}
@@ -79,6 +82,7 @@
         </button>
       {/if}
     </div>
+    
 
     <!-- Tab Panels -->
     <div class="border border-t-0 border-gray-200 rounded-b-2xl shadow-lg bg-white p-6">

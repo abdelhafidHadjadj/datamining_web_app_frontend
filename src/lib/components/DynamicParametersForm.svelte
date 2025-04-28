@@ -8,7 +8,7 @@
   </script>
   
   <div class="space-y-4">
-    {#if selectedAlgorithm === 'kmeans' || selectedAlgorithm === 'kmedoids'}
+    {#if selectedAlgorithm === 'kmeans' || selectedAlgorithm === 'kmedoids' || selectedAlgorithm === 'agnes' || selectedAlgorithm === 'diana'}
       <div class="space-y-1">
         <label class="block text-gray-700 font-medium">Number of Clusters (k)</label>
         <input

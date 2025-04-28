@@ -1,5 +1,5 @@
 <script>
-    import { Home, Database, Settings, SlidersHorizontal, Users, ChevronRight, ChevronLeft, LayoutDashboard  } from 'lucide-svelte';
+    import { Home, Database, Settings, SlidersHorizontal, Users, ChevronRight, ChevronLeft, LayoutDashboard, ChartNoAxesCombined, BrainCircuit  } from 'lucide-svelte';
     import { sidebarOpen } from '$lib/stores/sidebarStore.js';
     import { get } from 'svelte/store';
   
@@ -59,8 +59,8 @@
         <!-- Unsupervised -->
         <div>
           <div class="flex items-center gap-3 p-2 rounded hover:bg-gray-700 cursor-pointer" on:click={() => showUnsupervised = !showUnsupervised}>
-            <Users class="w-5 h-5" />
-            {#if $sidebarOpen}<span>Unsupervised</span>{/if}
+            <BrainCircuit  class="w-5 h-5"/>
+                {#if $sidebarOpen}<span>Unsupervised</span>{/if}
           </div>
           {#if $sidebarOpen && showUnsupervised}
             <div class="ml-8 space-y-1 text-sm">
@@ -68,6 +68,10 @@
             </div>
           {/if}
         </div>
+        <a href="/metrics" class="flex items-center gap-3 p-2 rounded hover:bg-gray-700">
+          <ChartNoAxesCombined class="w-5 h-5"/>
+          {#if $sidebarOpen}<span>Metrics</span>{/if}
+        </a>
   
         <a href="/settings" class="flex items-center gap-3 p-2 rounded hover:bg-gray-700">
           <Settings class="w-5 h-5" />
